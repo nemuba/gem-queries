@@ -1,7 +1,9 @@
 module Queries
   VERSION = "0.1.0"
 
-  def self.version
-    VERSION
+  class Version
+    def self.to_s
+      VERSION
+    end
   end
 end
