@@ -39,6 +39,10 @@ end
 # app/queries/sql/list_all_users.sql
 SELECT * FROM users;
 
+
+# List all users
+ListAllUsers.call => [#<User id:...>, ..]
+
 ```
 
 ## Contributing
