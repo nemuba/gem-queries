@@ -21,6 +21,26 @@ Or install it yourself as:
 $ gem install queries
 ```
 
+## Usage
+To use the Queries gem, you can create a query class that inherits from `ApplicationQuery`. Here's an example of how to create a simple query to list all users:
+
+```ruby
+# app/queries/application_query.rb
+class ApplicationQuery < Queries::Base
+  # This is a base class for all queries.
+  # You can add common methods or scopes here.
+end
+
+# app/queries/list_all_users.rb
+class ListAllUsers < ApplicationQuery
+  MODEL = User
+end
+
+# app/queries/sql/list_all_users.sql
+SELECT * FROM users;
+
+```
+
 ## Contributing
 Contribution directions go here.
 
