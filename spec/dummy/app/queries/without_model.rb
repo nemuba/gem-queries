@@ -1,0 +1,2 @@
+class WithoutModel < ApplicationQuery
+end
