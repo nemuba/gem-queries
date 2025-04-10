@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/nemuba/gem-queries/graph/badge.svg?token=8UC9DFEKCJ)](https://codecov.io/gh/nemuba/gem-queries)
+
 # Queries
 Short description and motivation.
 
