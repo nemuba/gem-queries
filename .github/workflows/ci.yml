@@ -34,7 +34,9 @@ jobs:
           bundler-cache: true
 
       - name: Migrate database
-        run: RAILS_ENV=test rails app:db:migrate
+        run: cd spec/dummy && RAILS_ENV=test bin/rails db:migrate
+        env:
+          RAILS_ENV: test
 
       - name: Run tests with RSpec
         run: bundle exec rspec
