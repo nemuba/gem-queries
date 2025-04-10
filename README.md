@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/nemuba/gem-queries/graph/badge.svg?token=8UC9DFEKCJ)](https://codecov.io/gh/nemuba/gem-queries)
+
 # Queries
 
 Uma gem Ruby para facilitar a execução de consultas SQL em aplicações Rails, permitindo a separação de consultas complexas em arquivos SQL dedicados, mantendo seu código mais organizado e legível.
