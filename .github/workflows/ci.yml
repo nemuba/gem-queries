@@ -47,3 +47,5 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          slug: nemuba/gem-queries
+          files: ./coverage/.resultset.json
