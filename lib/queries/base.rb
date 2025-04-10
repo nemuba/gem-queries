@@ -39,6 +39,16 @@ module Queries
       find_by_sql
     end
 
+    # Method self.call
+    # @param params [Hash] the parameters to be used in the query
+    # @return [Array] the result of the query
+    # @note This method is used to call the query
+    # @note It creates a new instance of the class and calls the call method
+    # @note This method should be used to execute the query
+    def self.call(params = {})
+      new(params).call
+    end
+
     private
 
     attr_reader :params
@@ -62,12 +72,29 @@ module Queries
       ActiveRecord::Base.connection.execute(query)
     end
 
+    # Method root_path
+    # @return [String] the path to the SQL file
+    # @note This method returns the path to the SQL file
+    # @note The SQL file should be in the app/queries/sql folder
+    def root_path
+      Rails.root.join("app", "queries", "sql")
+    end
+
+    # Method filename
+    # @return [String] the name of the SQL file
+    # @note This method returns the name of the SQL file
+    # @note The SQL file name should be the same as the class name in snake_case
+    # @note The SQL file should be in the app/queries/sql folder
+    def filename
+      self.class.name.underscore
+    end
+
     # Method file
     # @return [String] the path to the SQL file
     # @note The SQL file name should be the same as the class name in snake_case
     # @note The SQL file should be in the app/queries/sql folder
     def file
-      Rails.root.join("app", "queries", "sql", "#{self.class.name.underscore}.sql")
+      root_path.join("#{filename}.sql")
     end
 
     # Method sql
@@ -78,7 +105,7 @@ module Queries
       if  File.exist?(file)
         File.read(file)
       else
-        raise "SQL file not found at folder (app/queries/sql) for #{self.class.name.underscore}.sql"
+        raise "SQL file not found at folder (#{root_path}) for #{filename}.sql"
       end
     end
 
