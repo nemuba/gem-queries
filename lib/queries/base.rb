@@ -28,9 +28,11 @@ module Queries
   class Base
     # Method initialize
     # @param params [Hash] the parameters to be used in the query
+    # @param sql_file [String, nil] optional path to SQL file to use instead of default
     # @return [void]
-    def initialize(params)
+    def initialize(params, sql_file: nil)
       @params = params
+      @sql_file = sql_file
     end
 
     # Method call
@@ -41,17 +43,18 @@ module Queries
 
     # Method self.call
     # @param params [Hash] the parameters to be used in the query
+    # @param sql_file [String, nil] optional path to SQL file to use instead of default
     # @return [Array] the result of the query
     # @note This method is used to call the query
     # @note It creates a new instance of the class and calls the call method
     # @note This method should be used to execute the query
-    def self.call(params = {})
-      new(params).call
+    def self.call(params = {}, sql_file: nil)
+      new(params, sql_file: sql_file).call
     end
 
     private
 
-    attr_reader :params
+    attr_reader :params, :sql_file
 
     # Method model
     # @return [Class] the model class to be used in the query
@@ -93,7 +96,16 @@ module Queries
     # @return [String] the path to the SQL file
     # @note The SQL file name should be the same as the class name in snake_case
     # @note The SQL file should be in the app/queries/sql folder
+    # @note Can be overridden by passing sql_file to initialize/call or by setting SQL_FILE constant
     def file
+      return sql_file if sql_file.present?
+
+      begin
+        return self.class::SQL_FILE if self.class.const_defined?(:SQL_FILE, false)
+      rescue NameError
+        # SQL_FILE constant not defined, fall through to default
+      end
+
       root_path.join("#{filename}.sql")
     end
 
