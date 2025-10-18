@@ -11,7 +11,7 @@ Dir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f 
 
 RSpec.configure do |config|
   # Configuração para usar fixtures
-  config.fixture_path = "#{::Rails.root}/spec/fixtures"
+  config.fixture_paths = [ "#{::Rails.root}/spec/fixtures" ]
 
   # Se você estiver usando ActiveRecord
   config.use_transactional_fixtures = true

@@ -1,4 +1,6 @@
 /.bundle/
+/vendor/bundle/
+/coverage/
 /doc/
 /log/*.log
 /pkg/
