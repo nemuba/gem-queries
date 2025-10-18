@@ -99,12 +99,7 @@ module Queries
     # @note Can be overridden by passing sql_file to initialize/call or by setting SQL_FILE constant
     def file
       return sql_file if sql_file.present?
-
-      begin
-        return self.class::SQL_FILE if self.class.const_defined?(:SQL_FILE, false)
-      rescue NameError
-        # SQL_FILE constant not defined, fall through to default
-      end
+      return self.class::SQL_FILE if self.class.const_defined?(:SQL_FILE, false)
 
       root_path.join("#{filename}.sql")
     end
