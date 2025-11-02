@@ -32,8 +32,11 @@ Este projeto inclui uma configuração completa de Dev Container para desenvolvi
    # Rodar linter
    bin/rubocop
    
-   # Migrar banco de dados (dummy app)
+   # Migrar banco de dados (ambiente de teste)
    cd spec/dummy && RAILS_ENV=test bin/rails db:migrate
+   
+   # Migrar banco de dados (ambiente de desenvolvimento)
+   cd spec/dummy && bin/rails db:migrate
    
    # Iniciar servidor Rails (dummy app)
    cd spec/dummy && bin/rails server
