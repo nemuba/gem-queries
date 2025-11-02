@@ -69,8 +69,8 @@
     }
   },
 
-  // Run bundle install on container creation
-  "postCreateCommand": "bundle install",
+  // Fix permissions on volume mount and run bundle install
+  "postCreateCommand": "sudo chown -R vscode:vscode /usr/local/bundle && bundle install",
 
   // Forward ports for Rails server and any test servers
   "forwardPorts": [3000],

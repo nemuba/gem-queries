@@ -13,6 +13,7 @@ RUN apk add --no-cache \
     zsh-vcs \
     less \
     curl \
+    sudo \
     && rm -rf /var/cache/apk/*
 
 # Create non-root user
@@ -23,7 +24,9 @@ ARG USER_GID=$USER_UID
 RUN addgroup -g $USER_GID $USERNAME \
     && adduser -D -u $USER_UID -G $USERNAME -s /bin/zsh $USERNAME \
     && mkdir -p /home/$USERNAME/.bundle \
-    && chown -R $USERNAME:$USERNAME /home/$USERNAME
+    && chown -R $USERNAME:$USERNAME /home/$USERNAME \
+    && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
 
 # Set up gem and bundler cache directories
 ENV GEM_HOME=/usr/local/bundle

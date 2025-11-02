@@ -26,6 +26,9 @@ Este projeto inclui uma configuração completa de Dev Container para desenvolvi
    # Instalar dependências
    bundle install
    
+   # Instalar gems globalmente (se necessário)
+   gem install nome-da-gem
+   
    # Rodar testes
    bundle exec rspec
    
@@ -49,8 +52,8 @@ Este projeto inclui uma configuração completa de Dev Container para desenvolvi
 - **SQLite**: Pré-instalado e configurado
 - **Zsh + Oh My Zsh**: Shell padrão com plugins (autosuggestions, syntax-highlighting, completions)
 - **Ruby LSP**: Instalado globalmente com configurações completas
-- **Usuário não-root**: Segurança com usuário `vscode`
-- **Cache de Gems**: Volume persistente para builds rápidos
+- **Usuário não-root**: Segurança com usuário `vscode` (com sudo disponível)
+- **Cache de Gems**: Volume persistente para builds rápidos (permissões corrigidas automaticamente)
 - **Extensões VS Code**: Ruby LSP, RuboCop, Solargraph pré-instalados
 - **Auto-formatação**: Código formatado automaticamente ao salvar com RuboCop
 
@@ -79,6 +82,7 @@ Este projeto inclui uma configuração completa de Dev Container para desenvolvi
 ### Gems não instalam
 - Rebuild container: `Dev Containers: Rebuild Container`
 - Limpar cache: `docker volume rm gem-cache`
+- Se erro de permissão ao instalar gems manualmente: as permissões são corrigidas automaticamente no `postCreateCommand`. Se necessário, execute: `sudo chown -R vscode:vscode /usr/local/bundle`
 
 ### Performance lenta
 - No Mac/Windows, a configuração já usa `consistency=cached` para melhor performance
