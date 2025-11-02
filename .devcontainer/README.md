@@ -54,7 +54,7 @@ Este projeto inclui uma configuração completa de Dev Container para desenvolvi
 - **Ruby LSP**: Instalado globalmente com configurações completas
 - **Usuário não-root**: Segurança com usuário `vscode` (com sudo disponível)
 - **Cache de Gems**: Volume persistente para builds rápidos (permissões corrigidas automaticamente)
-- **Extensões VS Code**: Ruby LSP, RuboCop, Solargraph pré-instalados
+- **Extensões VS Code**: Ruby LSP, RuboCop pré-instalados
 - **Auto-formatação**: Código formatado automaticamente ao salvar com RuboCop
 
 ## Estrutura
