@@ -26,8 +26,35 @@
         "kaiwood.endwise"
       ],
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        },
         "ruby.useLanguageServer": true,
+        "ruby.lsp.enableExperimentalFeatures": true,
+        "ruby.lsp.enabledFeatures": {
+          "codeActions": true,
+          "diagnostics": true,
+          "documentHighlights": true,
+          "documentLink": true,
+          "documentSymbols": true,
+          "foldingRanges": true,
+          "formatting": true,
+          "hover": true,
+          "inlayHint": true,
+          "onTypeFormatting": true,
+          "selectionRanges": true,
+          "semanticHighlighting": true,
+          "completion": true,
+          "codeLens": true,
+          "definition": true,
+          "workspaceSymbol": true,
+          "signatureHelp": true,
+          "typeHierarchy": true
+        },
+        "ruby.lsp.formatter": "rubocop",
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "Shopify.ruby-lsp",
         "[ruby]": {
@@ -35,7 +62,8 @@
           "editor.formatOnSave": true,
           "editor.formatOnType": true,
           "editor.tabSize": 2,
-          "editor.insertSpaces": true
+          "editor.insertSpaces": true,
+          "editor.semanticHighlighting.enabled": true
         }
       }
     }

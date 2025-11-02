@@ -47,10 +47,12 @@ Este projeto inclui uma configuração completa de Dev Container para desenvolvi
 - **Base Alpine**: Imagem leve (~100MB base vs ~1GB+ Debian)
 - **Ruby 3.4.1**: Versão utilizada no CI
 - **SQLite**: Pré-instalado e configurado
+- **Zsh + Oh My Zsh**: Shell padrão com plugins (autosuggestions, syntax-highlighting, completions)
+- **Ruby LSP**: Instalado globalmente com configurações completas
 - **Usuário não-root**: Segurança com usuário `vscode`
 - **Cache de Gems**: Volume persistente para builds rápidos
 - **Extensões VS Code**: Ruby LSP, RuboCop, Solargraph pré-instalados
-- **Auto-formatação**: Código formatado automaticamente ao salvar
+- **Auto-formatação**: Código formatado automaticamente ao salvar com RuboCop
 
 ## Estrutura
 
