@@ -1,0 +1,76 @@
+{
+  "name": "Queries Rails Engine",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".",
+    "args": {
+      "USERNAME": "vscode"
+    }
+  },
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  // Configure mounts for gem cache persistence and SSH
+  "mounts": [
+    "source=gem-cache,target=/usr/local/bundle,type=volume",
+    "source=${env:HOME}/.ssh,target=/tmp/.ssh-host,type=bind,consistency=cached,readonly"
+  ],
+  // VS Code customizations
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Shopify.ruby-lsp",
+        "rubocop.vscode-rubocop",
+        "kaiwood.endwise"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh"
+          },
+          "bash": {
+            "path": "/bin/bash"
+          }
+        },
+        "ruby.useLanguageServer": true,
+        "rubyLsp.rubyVersionManager": {
+          "identifier": "none"
+        },
+        "rubyLsp.customRubyCommand": "/usr/local/bin/ruby",
+        "rubyLsp.autoRefreshBundle": true,
+        "rubyLsp.bundleGemfile": "${workspaceFolder}/Gemfile",
+        "rubyLsp.formatter": "rubocop_internal",
+        "rubyLsp.enableExperimentalFeatures": true,
+        "rubyLsp.erbSupport": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "Shopify.ruby-lsp",
+        "[ruby]": {
+          "editor.defaultFormatter": "Shopify.ruby-lsp",
+          "editor.formatOnSave": true,
+          "editor.formatOnType": true,
+          "editor.tabSize": 2,
+          "editor.insertSpaces": true,
+          "editor.semanticHighlighting.enabled": true
+        }
+      }
+    }
+  },
+  // Forward ports for Rails server and any test servers
+  "forwardPorts": [
+    3000
+  ],
+  // Features to install
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  // Container environment variables
+  "remoteEnv": {
+    "RAILS_ENV": "development",
+    "BUNDLE_PATH": "/usr/local/bundle",
+    "GEM_HOME": "/usr/local/bundle",
+    "SHELL": "/bin/zsh"
+  },
+  // Run commands after container creation
+  "postCreateCommand": "sudo chown -R vscode:vscode /usr/local/bundle && setup-ssh.sh && bundle install"
+}

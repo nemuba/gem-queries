@@ -1,0 +1,39 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+
+# Documentation
+*.md
+MIT-LICENSE
+
+# Development files
+.devcontainer
+
+# Ruby/Rails
+.bundle
+vendor/bundle
+.rspec
+coverage
+spec/dummy/log/*
+spec/dummy/tmp/*
+spec/dummy/storage/*
+
+# Editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+*.log
+tmp
+log
