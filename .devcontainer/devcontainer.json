@@ -1,0 +1,63 @@
+{
+  "name": "Queries Rails Engine",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".",
+    "args": {
+      "USERNAME": "vscode"
+    }
+  },
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  
+  // Configure mounts for gem cache persistence
+  "mounts": [
+    "source=gem-cache,target=/usr/local/bundle,type=volume"
+  ],
+
+  // VS Code customizations
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rebornix.ruby",
+        "Shopify.ruby-lsp",
+        "rubocop.vscode-rubocop",
+        "castwide.solargraph",
+        "kaiwood.endwise"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "ruby.useLanguageServer": true,
+        "ruby.format": "rubocop",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "Shopify.ruby-lsp",
+        "[ruby]": {
+          "editor.defaultFormatter": "Shopify.ruby-lsp",
+          "editor.formatOnSave": true,
+          "editor.formatOnType": true,
+          "editor.tabSize": 2,
+          "editor.insertSpaces": true
+        }
+      }
+    }
+  },
+
+  // Run bundle install on container creation
+  "postCreateCommand": "bundle install",
+
+  // Forward ports for Rails server and any test servers
+  "forwardPorts": [3000],
+  
+  // Features to install
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+
+  // Container environment variables
+  "remoteEnv": {
+    "RAILS_ENV": "development",
+    "BUNDLE_PATH": "/usr/local/bundle",
+    "GEM_HOME": "/usr/local/bundle"
+  }
+}
