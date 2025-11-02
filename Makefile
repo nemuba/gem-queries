@@ -113,7 +113,7 @@ install-local: build ## Build and install gem locally
 release: ## Release the gem (requires version bump)
 	@printf "$(BOLD)$(YELLOW)🚀 Releasing gem...$(RESET)\n"
 	@read -p "Enter version (e.g., 1.2.3): " version; \
-	sed -i.bak "s/VERSION = .*/VERSION = \"$$version\"/" lib/queries/version.rb; \
+	sed -i '' -e "s/VERSION = .*/VERSION = \"$$version\"/" lib/queries/version.rb || sed -i.bak "s/VERSION = .*/VERSION = \"$$version\"/" lib/queries/version.rb; \
 	rm lib/queries/version.rb.bak; \
 	git add lib/queries/version.rb; \
 	git commit -m "Bump version to $$version"; \
