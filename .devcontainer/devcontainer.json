@@ -10,9 +10,10 @@
   "remoteUser": "vscode",
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
-  // Configure mounts for gem cache persistence
+  // Configure mounts for gem cache persistence and SSH
   "mounts": [
-    "source=gem-cache,target=/usr/local/bundle,type=volume"
+    "source=gem-cache,target=/usr/local/bundle,type=volume",
+    "source=${env:HOME}/.ssh,target=/tmp/.ssh-host,type=bind,consistency=cached,readonly"
   ],
   // VS Code customizations
   "customizations": {
@@ -55,8 +56,6 @@
       }
     }
   },
-  // Fix permissions on volume mount and run bundle install
-  "postCreateCommand": "sudo chown -R vscode:vscode /usr/local/bundle && bundle install",
   // Forward ports for Rails server and any test servers
   "forwardPorts": [
     3000
@@ -71,5 +70,7 @@
     "BUNDLE_PATH": "/usr/local/bundle",
     "GEM_HOME": "/usr/local/bundle",
     "SHELL": "/bin/zsh"
-  }
+  },
+  // Run commands after container creation
+  "postCreateCommand": "sudo chown -R vscode:vscode /usr/local/bundle && setup-ssh.sh && bundle install"
 }

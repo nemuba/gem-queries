@@ -14,6 +14,7 @@ RUN apk add --no-cache \
     less \
     curl \
     sudo \
+    openssh-client \
     && rm -rf /var/cache/apk/* \
     && ZSH_PATH=$(which zsh) \
     && if [ -n "$ZSH_PATH" ] && [ -f "$ZSH_PATH" ]; then \
@@ -31,6 +32,7 @@ ARG USER_GID=$USER_UID
 RUN addgroup -g $USER_GID $USERNAME \
     && adduser -D -u $USER_UID -G $USERNAME -s /bin/zsh $USERNAME \
     && mkdir -p /home/$USERNAME/.bundle \
+    && mkdir -p /home/$USERNAME/.ssh \
     && chown -R $USERNAME:$USERNAME /home/$USERNAME \
     && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
@@ -44,6 +46,10 @@ ENV SHELL=/bin/zsh
 
 # Create and set permissions for bundle cache
 RUN mkdir -p $GEM_HOME && chown -R $USERNAME:$USERNAME $GEM_HOME
+
+# Copy SSH setup script (before switching user)
+COPY setup-ssh.sh /usr/local/bin/setup-ssh.sh
+RUN chmod +x /usr/local/bin/setup-ssh.sh && chown $USERNAME:$USERNAME /usr/local/bin/setup-ssh.sh
 
 # Switch to non-root user
 USER $USERNAME
