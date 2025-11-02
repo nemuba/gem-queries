@@ -20,7 +20,6 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "rebornix.ruby",
         "Shopify.ruby-lsp",
         "rubocop.vscode-rubocop",
         "castwide.solargraph",
@@ -29,7 +28,6 @@
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
         "ruby.useLanguageServer": true,
-        "ruby.format": "rubocop",
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "Shopify.ruby-lsp",
         "[ruby]": {
