@@ -14,7 +14,14 @@ RUN apk add --no-cache \
     less \
     curl \
     sudo \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/cache/apk/* \
+    && ZSH_PATH=$(which zsh) \
+    && if [ -n "$ZSH_PATH" ] && [ -f "$ZSH_PATH" ]; then \
+         if [ "$ZSH_PATH" != "/bin/zsh" ] && [ ! -f /bin/zsh ]; then \
+           ln -sf "$ZSH_PATH" /bin/zsh; \
+         fi; \
+       fi \
+    && test -f /bin/zsh || (echo "Error: zsh not found. Expected at /bin/zsh. Found at: $ZSH_PATH" && exit 1)
 
 # Create non-root user
 ARG USERNAME=vscode
@@ -33,6 +40,7 @@ ENV GEM_HOME=/usr/local/bundle
 ENV BUNDLE_PATH=$GEM_HOME
 ENV BUNDLE_APP_CONFIG=/home/$USERNAME/.bundle
 ENV PATH=$GEM_HOME/bin:$PATH
+ENV SHELL=/bin/zsh
 
 # Create and set permissions for bundle cache
 RUN mkdir -p $GEM_HOME && chown -R $USERNAME:$USERNAME $GEM_HOME
@@ -40,11 +48,15 @@ RUN mkdir -p $GEM_HOME && chown -R $USERNAME:$USERNAME $GEM_HOME
 # Switch to non-root user
 USER $USERNAME
 
-# Install Oh My Zsh and plugins
+# Install Oh My Zsh and plugins with shallow clones, then clean up
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended \
-    && git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions \
-    && git clone https://github.com/zsh-users/zsh-syntax-highlighting ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting \
-    && git clone https://github.com/zsh-users/zsh-completions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-completions
+    && git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions \
+    && git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting \
+    && git clone --depth 1 https://github.com/zsh-users/zsh-completions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-completions \
+    && rm -rf ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/*/.git \
+    && rm -rf ~/.oh-my-zsh/.git \
+    && rm -rf /tmp/* \
+    && rm -rf ~/.cache
 
 # Configure zsh plugins
 RUN sed -i 's/plugins=(git)/plugins=(git ruby bundler zsh-autosuggestions zsh-syntax-highlighting zsh-completions)/' ~/.zshrc \
@@ -53,8 +65,11 @@ RUN sed -i 's/plugins=(git)/plugins=(git ruby bundler zsh-autosuggestions zsh-sy
 # Set working directory
 WORKDIR /workspace
 
-# Install bundler and ruby-lsp globally
-RUN gem install bundler ruby-lsp
+# Install bundler and ruby-lsp globally, then clean gem cache
+RUN gem install bundler ruby-lsp \
+    && gem cleanup \
+    && rm -rf /tmp/* \
+    && rm -rf ~/.gem/cache
 
 # Keep container running
 CMD ["sleep", "infinity"]

@@ -10,19 +10,16 @@
   "remoteUser": "vscode",
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
-  
   // Configure mounts for gem cache persistence
   "mounts": [
     "source=gem-cache,target=/usr/local/bundle,type=volume"
   ],
-
   // VS Code customizations
   "customizations": {
     "vscode": {
       "extensions": [
         "Shopify.ruby-lsp",
         "rubocop.vscode-rubocop",
-        "castwide.solargraph",
         "kaiwood.endwise"
       ],
       "settings": {
@@ -30,31 +27,21 @@
         "terminal.integrated.profiles.linux": {
           "zsh": {
             "path": "/bin/zsh"
+          },
+          "bash": {
+            "path": "/bin/bash"
           }
         },
         "ruby.useLanguageServer": true,
-        "ruby.lsp.enableExperimentalFeatures": true,
-        "ruby.lsp.enabledFeatures": {
-          "codeActions": true,
-          "diagnostics": true,
-          "documentHighlights": true,
-          "documentLink": true,
-          "documentSymbols": true,
-          "foldingRanges": true,
-          "formatting": true,
-          "hover": true,
-          "inlayHint": true,
-          "onTypeFormatting": true,
-          "selectionRanges": true,
-          "semanticHighlighting": true,
-          "completion": true,
-          "codeLens": true,
-          "definition": true,
-          "workspaceSymbol": true,
-          "signatureHelp": true,
-          "typeHierarchy": true
+        "rubyLsp.rubyVersionManager": {
+          "identifier": "none"
         },
-        "ruby.lsp.formatter": "rubocop",
+        "rubyLsp.customRubyCommand": "/usr/local/bin/ruby",
+        "rubyLsp.autoRefreshBundle": true,
+        "rubyLsp.bundleGemfile": "${workspaceFolder}/Gemfile",
+        "rubyLsp.formatter": "rubocop_internal",
+        "rubyLsp.enableExperimentalFeatures": true,
+        "rubyLsp.erbSupport": true,
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "Shopify.ruby-lsp",
         "[ruby]": {
@@ -68,22 +55,21 @@
       }
     }
   },
-
   // Fix permissions on volume mount and run bundle install
   "postCreateCommand": "sudo chown -R vscode:vscode /usr/local/bundle && bundle install",
-
   // Forward ports for Rails server and any test servers
-  "forwardPorts": [3000],
-  
+  "forwardPorts": [
+    3000
+  ],
   // Features to install
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}
   },
-
   // Container environment variables
   "remoteEnv": {
     "RAILS_ENV": "development",
     "BUNDLE_PATH": "/usr/local/bundle",
-    "GEM_HOME": "/usr/local/bundle"
+    "GEM_HOME": "/usr/local/bundle",
+    "SHELL": "/bin/zsh"
   }
 }
