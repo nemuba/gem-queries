@@ -2,33 +2,33 @@
 
 # Queries
 
-Uma gem Ruby para facilitar a execução de consultas SQL em aplicações Rails, permitindo a separação de consultas complexas em arquivos SQL dedicados, mantendo seu código mais organizado e legível.
+A Ruby gem to simplify the execution of SQL queries in Rails applications, allowing complex queries to be separated into dedicated SQL files, keeping your code more organized and readable.
 
-## Motivação
+## Motivation
 
-O Queries foi criado para resolver o problema de consultas SQL complexas em aplicações Rails. Em vez de escrever SQL diretamente em seus modelos ou controladores, ou criar grandes scopes, você pode isolar suas consultas em arquivos SQL dedicados e organizados, tornando seu código mais limpo e fácil de manter.
+Queries was created to solve the problem of complex SQL queries in Rails applications. Instead of writing SQL directly in your models or controllers, or creating large scopes, you can isolate your queries in dedicated, organized SQL files, making your code cleaner and easier to maintain.
 
-## Instalação
+## Installation
 
-Adicione esta linha ao Gemfile da sua aplicação:
+Add this line to your application's Gemfile:
 
 ```ruby
 gem "queries"
 ```
 
-E então execute:
+And then execute:
 
 ```bash
 bundle
 ```
 
-Ou instale manualmente:
+Or install it manually:
 
 ```bash
 gem install queries
 ```
 
-## Estrutura recomendada
+## Recommended structure
 
 ```
 app/
@@ -41,28 +41,28 @@ app/
         └── find_post_query.sql
 ```
 
-## Uso
+## Usage
 
-Para usar o Queries gem, siga estes passos:
+To use the Queries gem, follow these steps:
 
-### 1. Crie uma classe base para suas consultas
+### 1. Create a base class for your queries
 
 ```ruby
 # app/queries/application_query.rb
 class ApplicationQuery < Queries::Base
-  # Esta é uma classe base para todas as suas consultas.
-  # Você pode adicionar métodos ou escopos comuns aqui.
+  # This is a base class for all your queries.
+  # You can add common methods or scopes here.
 end
 ```
 
-### 2. Crie um arquivo SQL com sua consulta
+### 2. Create an SQL file with your query
 
 ```sql
 # app/queries/sql/list_users_query.sql
 SELECT * FROM users WHERE id = :id
 ```
 
-### 3. Crie uma classe de consulta específica
+### 3. Create a specific query class
 
 ```ruby
 # app/queries/list_users_query.rb
@@ -71,20 +71,20 @@ class ListUsersQuery < ApplicationQuery
 end
 ```
 
-### 4. Execute sua consulta
+### 4. Execute your query
 
 ```ruby
-# Para buscar um usuário específico
+# To fetch a specific user
 user = ListUsersQuery.call(id: 123)
 
-# Ou instancie e execute
+# Or instantiate and execute
 query = ListUsersQuery.new(id: 123)
 user = query.call
 ```
 
-### Parâmetros de consulta
+### Query parameters
 
-O Queries suporta parâmetros nomeados em suas consultas SQL. Use `:nome_parametro` em seu SQL e passe os valores correspondentes como um hash:
+Queries supports named parameters in your SQL queries. Use `:parameter_name` in your SQL and pass the corresponding values as a hash:
 
 ```sql
 # app/queries/sql/search_posts_query.sql
@@ -95,7 +95,7 @@ AND status = :status
 ```
 
 ```ruby
-# Passando múltiplos parâmetros
+# Passing multiple parameters
 posts = SearchPostsQuery.call(
   start_date: 1.month.ago,
   end_date: Date.today,
@@ -103,9 +103,9 @@ posts = SearchPostsQuery.call(
 )
 ```
 
-### Trabalhando com modelos
+### Working with models
 
-Defina a constante `MODEL` na sua classe de consulta para aproveitar os métodos do ActiveRecord nos resultados:
+Define the `MODEL` constant in your query class to take advantage of ActiveRecord methods on the results:
 
 ```ruby
 class PostsWithComments < ApplicationQuery
@@ -113,18 +113,18 @@ class PostsWithComments < ApplicationQuery
 end
 ```
 
-Se você não definir um modelo, a consulta retornará resultados brutos do banco de dados.
+If you don't define a model, the query will return raw database results.
 
-## Testes
+## Testing
 
-O Queries foi projetado para ser facilmente testável. Veja um exemplo de teste RSpec:
+Queries is designed to be easily testable. Here is an example RSpec test:
 
 ```ruby
 require 'rails_helper'
 
 RSpec.describe ListUsersQuery, type: :query do
   describe "#call" do
-    it "retorna usuários com o status especificado" do
+    it "returns users with the specified status" do
       active_user = User.create(status: 'active')
       inactive_user = User.create(status: 'inactive')
 
@@ -137,14 +137,14 @@ RSpec.describe ListUsersQuery, type: :query do
 end
 ```
 
-## Contribuindo
+## Contributing
 
-1. Fork o projeto
-2. Crie sua feature branch (`git checkout -b minha-nova-feature`)
-3. Commit suas alterações (`git commit -am 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin minha-nova-feature`)
-5. Crie um novo Pull Request
+1. Fork the project
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create a new Pull Request
 
-## Licença
+## License
 
-A gem está disponível como código aberto sob os termos da [Licença MIT](https://opensource.org/licenses/MIT).
+The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
