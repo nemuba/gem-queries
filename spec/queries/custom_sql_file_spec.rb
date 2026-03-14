@@ -19,7 +19,10 @@ RSpec.describe 'Custom SQL File Functionality', type: :query do
     it 'raises an error when SQL file does not exist' do
       invalid_path = Rails.root.join('app', 'queries', 'sql', 'nonexistent.sql')
       query = Posts.new({}, sql_file: invalid_path)
-      expect { query.call }.to raise_error(RuntimeError)
+      expect { query.call }.to raise_error(
+        Queries::Errors::SqlFileNotFoundError,
+        /source=runtime_override attempted_path=.*nonexistent\.sql base_sql_folder=n\/a/
+      )
     end
   end
 
@@ -29,9 +32,34 @@ RSpec.describe 'Custom SQL File Functionality', type: :query do
       expect(result).to be_an(Array)
     end
 
-    it 'raises an error when SQL file does not exist' do
+    it 'raises SqlFileNotFoundError with runtime override metadata when SQL file does not exist' do
       invalid_path = Rails.root.join('app', 'queries', 'sql', 'nonexistent.sql')
-      expect { Posts.call({}, sql_file: invalid_path) }.to raise_error(RuntimeError)
+
+      expect { Posts.call({}, sql_file: invalid_path) }.to raise_error(
+        Queries::Errors::SqlFileNotFoundError,
+        /source=runtime_override attempted_path=.*nonexistent\.sql base_sql_folder=n\/a/
+      )
+    end
+  end
+
+  describe 'missing SQL file metadata' do
+    it 'includes default source metadata for missing default SQL file' do
+      expect { WithoutSqlFile.call }.to raise_error(
+        Queries::Errors::SqlFileNotFoundError,
+        /source=default attempted_path=.*without_sql_file\.sql base_sql_folder=.*app\/queries\/sql/
+      )
+    end
+
+    it 'includes SQL_FILE source metadata for missing SQL_FILE path' do
+      invalid_sql_file_query = Class.new(ApplicationQuery)
+      invalid_sql_file_query.const_set(:MODEL, Post)
+      invalid_sql_file_query.const_set(:SQL_FILE, Rails.root.join('app', 'queries', 'sql', 'missing_from_constant.sql'))
+      stub_const('InvalidSqlFileQuery', invalid_sql_file_query)
+
+      expect { invalid_sql_file_query.call }.to raise_error(
+        Queries::Errors::SqlFileNotFoundError,
+        /source=SQL_FILE attempted_path=.*missing_from_constant\.sql base_sql_folder=n\/a/
+      )
     end
   end
 
@@ -87,6 +115,16 @@ RSpec.describe 'Custom SQL File Functionality', type: :query do
     it 'uses default behavior when neither sql_file nor SQL_FILE is set' do
       result = Posts.call
       expect(result).to be_an(Array)
+    end
+  end
+
+  describe 'error hierarchy compatibility' do
+    it 'keeps custom errors compatible with RuntimeError and StandardError' do
+      expect(Queries::Errors::SqlFileNotFoundError).to be < RuntimeError
+      expect(Queries::Errors::SqlFileNotFoundError).to be < StandardError
+
+      expect(Queries::Errors::MissingRequiredParamsError).to be < RuntimeError
+      expect(Queries::Errors::MissingRequiredParamsError).to be < StandardError
     end
   end
 end
