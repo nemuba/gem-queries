@@ -31,7 +31,7 @@ module Queries
     # @param sql_file [String, nil] optional path to SQL file to use instead of default
     # @return [void]
     def initialize(params, sql_file: nil)
-      @params = params
+      @params = normalize_input_params(params)
       @sql_file = sql_file
     end
 
@@ -48,13 +48,30 @@ module Queries
     # @note This method is used to call the query
     # @note It creates a new instance of the class and calls the call method
     # @note This method should be used to execute the query
-    def self.call(params = {}, sql_file: nil)
-      new(params, sql_file: sql_file).call
+    def self.call(params = nil, sql_file: nil, **keyword_params)
+      merged_params = if keyword_params.empty?
+                        params
+      else
+                        normalize_params_input(params).merge(keyword_params)
+      end
+
+      new(merged_params, sql_file: sql_file).call
     end
 
     private
 
     attr_reader :params, :sql_file
+
+    def self.normalize_params_input(value)
+      return {} if value.nil?
+      return value if value.is_a?(Hash)
+      if value.respond_to?(:to_h)
+        coerced = value.to_h
+        return coerced if coerced.is_a?(Hash)
+      end
+
+      raise ArgumentError, "params must be a Hash-like object or nil"
+    end
 
     # Method model
     # @return [Class] the model class to be used in the query
@@ -98,10 +115,42 @@ module Queries
     # @note The SQL file should be in the app/queries/sql folder
     # @note Can be overridden by passing sql_file to initialize/call or by setting SQL_FILE constant
     def file
-      return sql_file if sql_file.present?
-      return self.class::SQL_FILE if self.class.const_defined?(:SQL_FILE, false)
+      if sql_file.present?
+        sql_file
+      elsif self.class.const_defined?(:SQL_FILE, false)
+        self.class::SQL_FILE
+      else
+        root_path.join("#{filename}.sql")
+      end
+    end
 
-      root_path.join("#{filename}.sql")
+    def file_source
+      return "runtime_override" if sql_file.present?
+      return "SQL_FILE" if self.class.const_defined?(:SQL_FILE, false)
+
+      "default"
+    end
+
+    def base_sql_folder_for_message
+      file_source == "default" ? root_path.to_s : "n/a"
+    end
+
+    def required_param_names
+      sql.scan(/(?<!:):([A-Za-z_][A-Za-z0-9_]*)/).flatten.uniq.sort
+    end
+
+    def normalized_param_keys
+      params.keys.map(&:to_s).uniq.sort
+    end
+
+    def validate_required_params!
+      missing = required_param_names - normalized_param_keys
+      return if missing.empty?
+
+      missing_list = missing.join(",")
+      received_list = normalized_param_keys.join(",")
+      raise Errors::MissingRequiredParamsError,
+            "Missing required params for #{self.class.name}: missing=[#{missing_list}] received=[#{received_list}]"
     end
 
     # Method sql
@@ -109,10 +158,12 @@ module Queries
     # @note This method reads the SQL file and returns its content
     # @note If the file does not exist, it raises an error
     def sql
-      if  File.exist?(file)
+      if File.exist?(file)
         File.read(file)
       else
-        raise "SQL file not found at folder (#{root_path}) for #{filename}.sql"
+        raise Errors::SqlFileNotFoundError,
+              "SQL file not found for #{self.class.name}: source=#{file_source} attempted_path=#{file} " \
+              "base_sql_folder=#{base_sql_folder_for_message}"
       end
     end
 
@@ -121,7 +172,11 @@ module Queries
     # @note This method is used to prevent SQL injection
     # @note It uses the ActiveRecord::Base.sanitize_sql_array method
     def sanitize_params
-      [ sql ].concat([ params ])
+      bind_params = params.each_with_object({}) do |(key, value), result|
+        result[key.to_sym] = value
+      end
+
+      [ sql, bind_params ]
     end
 
     # Method query
@@ -131,7 +186,12 @@ module Queries
     # @note It returns the sanitized SQL query
     # @note This method should be used to execute the query
     def query
+      validate_required_params!
       ActiveRecord::Base.sanitize_sql_array(sanitize_params)
+    end
+
+    def normalize_input_params(value)
+      self.class.normalize_params_input(value)
     end
   end
 end
