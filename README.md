@@ -103,6 +103,13 @@ posts = SearchPostsQuery.call(
 )
 ```
 
+### Error handling
+
+Queries raises custom runtime errors for common DX failure paths:
+
+- `Queries::Errors::SqlFileNotFoundError` when the SQL file cannot be found.
+- `Queries::Errors::MissingRequiredParamsError` when SQL named placeholders (for example `:id`) are missing from provided params.
+
 ### Working with models
 
 Define the `MODEL` constant in your query class to take advantage of ActiveRecord methods on the results:
