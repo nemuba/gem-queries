@@ -2,6 +2,18 @@ require 'rails_helper'
 
 RSpec.describe 'Custom SQL File Functionality', type: :query do
   let(:custom_sql_path) { Rails.root.join('app', 'queries', 'sql', 'posts.sql') }
+  let(:logger) { instance_double(ActiveSupport::Logger, info: true) }
+
+  around do |example|
+    previous = Rails.application.config.x.queries.log_sql
+    Rails.application.config.x.queries.log_sql = true
+    example.run
+    Rails.application.config.x.queries.log_sql = previous
+  end
+
+  before do
+    allow(Rails).to receive(:logger).and_return(logger)
+  end
 
   describe 'default behavior' do
     it 'loads SQL from app/queries/sql/class_name.sql by default' do
@@ -22,6 +34,21 @@ RSpec.describe 'Custom SQL File Functionality', type: :query do
       expect { query.call }.to raise_error(
         Queries::Errors::SqlFileNotFoundError,
         /source=runtime_override attempted_path=.*nonexistent\.sql base_sql_folder=n\/a/
+      )
+    end
+
+    it 'includes runtime_override source metadata in SQL log' do
+      query = Posts.new({}, sql_file: custom_sql_path)
+
+      query.call
+
+      expect(logger).to have_received(:info).with(
+        hash_including(
+          event: 'queries.sql_execution',
+          query_class: 'Posts',
+          sql_source: 'runtime_override',
+          sql_file: custom_sql_path.to_s
+        )
       )
     end
   end
@@ -115,6 +142,33 @@ RSpec.describe 'Custom SQL File Functionality', type: :query do
     it 'uses default behavior when neither sql_file nor SQL_FILE is set' do
       result = Posts.call
       expect(result).to be_an(Array)
+    end
+
+    it 'logs default source metadata when using class name SQL lookup' do
+      Posts.call
+
+      expect(logger).to have_received(:info).with(
+        hash_including(
+          query_class: 'Posts',
+          sql_source: 'default'
+        )
+      )
+    end
+
+    it 'logs SQL_FILE source metadata when SQL_FILE constant is used' do
+      sql_file_query = Class.new(ApplicationQuery)
+      sql_file_query.const_set(:MODEL, Post)
+      sql_file_query.const_set(:SQL_FILE, Rails.root.join('app', 'queries', 'sql', 'posts.sql'))
+      stub_const('SqlFileSourceQuery', sql_file_query)
+
+      sql_file_query.call
+
+      expect(logger).to have_received(:info).with(
+        hash_including(
+          query_class: 'SqlFileSourceQuery',
+          sql_source: 'SQL_FILE'
+        )
+      )
     end
   end
 

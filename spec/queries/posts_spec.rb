@@ -15,6 +15,63 @@ RSpec.describe Posts, type: :query do
       expect(subject.call).to be_an(Array)
     end
 
+    describe "SQL logging" do
+      let(:logger) { instance_double(ActiveSupport::Logger, info: true) }
+
+      around do |example|
+        previous = Rails.application.config.x.queries.log_sql
+        Rails.application.config.x.queries.log_sql = true
+        example.run
+        Rails.application.config.x.queries.log_sql = previous
+      end
+
+      before do
+        allow(Rails).to receive(:logger).and_return(logger)
+      end
+
+      it "logs one SQL event per query execution" do
+        Post.create(title: "Post", description: "Desc")
+
+        subject.call
+
+        expect(logger).to have_received(:info).with(
+          hash_including(
+            event: "queries.sql_execution",
+            query_class: "Posts",
+            success: true,
+            sql: a_string_including("select * from posts")
+          )
+        ).once
+      end
+
+      it "logs one event for each execution in the same flow" do
+        Post.create(title: "Post", description: "Desc")
+
+        2.times { subject.call }
+
+        expect(logger).to have_received(:info).twice
+      end
+
+      it "masks sensitive params in logged SQL" do
+        sensitive_query = Class.new(ApplicationQuery) do
+          def sql
+            "SELECT :token AS token, :name AS name"
+          end
+        end
+        stub_const("SensitiveQuery", sensitive_query)
+
+        sensitive_query.call(token: "very-secret-token", name: "public")
+
+        expect(logger).to have_received(:info).with(
+          hash_including(
+            query_class: "SensitiveQuery",
+            sensitive_filtered: true,
+            sql: a_string_including("[FILTERED]")
+          )
+        )
+      end
+    end
+
     it "returns one or more records" do
       3.times { Post.create(title: "Test Post", description: "Test Description") }
       expect(subject.call).to be_present

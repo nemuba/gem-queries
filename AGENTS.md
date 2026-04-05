@@ -172,3 +172,10 @@ Follow existing local patterns first, then RuboCop defaults.
 - Run targeted tests first, then broader checks as needed.
 - Run lint on touched Ruby files.
 - Summarize changes and list exact verification commands run.
+
+## Active Technologies
+- Ruby 3.4.1 + Rails Engine, ActiveRecord, ActiveSupport, RSpec, RuboCop Omakase (001-sql-query-logging)
+- SQLite no ambiente de testes (`spec/dummy/storage/test.sqlite3`) (001-sql-query-logging)
+
+## Recent Changes
+- 001-sql-query-logging: Added Ruby 3.4.1 + Rails Engine, ActiveRecord, ActiveSupport, RSpec, RuboCop Omakase

@@ -110,6 +110,24 @@ Queries raises custom runtime errors for common DX failure paths:
 - `Queries::Errors::SqlFileNotFoundError` when the SQL file cannot be found.
 - `Queries::Errors::MissingRequiredParamsError` when SQL named placeholders (for example `:id`) are missing from provided params.
 
+### SQL execution logging
+
+Queries emits a structured log event for each query execution when SQL logging is enabled.
+
+- Event name: `queries.sql_execution`
+- Minimum payload includes: `query_class`, `sql`, `sql_source`, `timestamp`, `success`
+- Additional payload includes: `sql_file`, `duration_ms`, `error_class`, `sql_length`,
+  `sql_truncated`, `sensitive_filtered`
+
+By default, SQL logging is enabled outside production. You can control it per environment:
+
+```bash
+QUERIES_LOG_SQL=true
+QUERIES_LOG_SQL=false
+```
+
+You can also configure it in your app config with `config.x.queries.log_sql`.
+
 ### Working with models
 
 Define the `MODEL` constant in your query class to take advantage of ActiveRecord methods on the results:

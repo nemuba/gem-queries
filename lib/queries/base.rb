@@ -38,7 +38,14 @@ module Queries
     # Method call
     # @return [Array] the result of the query
     def call
-      find_by_sql
+      started_at = current_monotonic_time
+      executed_sql = query
+      result = find_by_sql(executed_sql)
+      log_sql_execution(sql_text: executed_sql, started_at: started_at, success: true)
+      result
+    rescue StandardError => e
+      log_sql_execution(sql_text: safe_sql_for_logging(executed_sql), started_at: started_at, success: false, error: e)
+      raise
     end
 
     # Method self.call
@@ -86,10 +93,10 @@ module Queries
     # @return [Array] the result of the query
     # @note This method should be use the model class to execute the query
     # @note If the model class is not present, it will execute the query directly
-    def find_by_sql
-      return model.find_by_sql(query) if model.present?
+    def find_by_sql(sql_text)
+      return model.find_by_sql(sql_text) if model.present?
 
-      ActiveRecord::Base.connection.execute(query)
+      ActiveRecord::Base.connection.execute(sql_text)
     end
 
     # Method root_path
@@ -188,6 +195,114 @@ module Queries
     def query
       validate_required_params!
       ActiveRecord::Base.sanitize_sql_array(sanitize_params)
+    end
+
+    def current_monotonic_time
+      Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    end
+
+    def sql_logging_enabled?
+      app_config = Rails.application.config.x.queries.log_sql if Rails.application.config.x.respond_to?(:queries)
+      return app_config unless app_config.nil?
+
+      env_value = ENV["QUERIES_LOG_SQL"]
+      return cast_boolean(env_value) unless env_value.nil?
+
+      !Rails.env.production?
+    rescue StandardError
+      true
+    end
+
+    def cast_boolean(value)
+      %w[1 true yes y on].include?(value.to_s.strip.downcase)
+    end
+
+    def safe_logger
+      Rails.logger if Rails.respond_to?(:logger)
+    end
+
+    def log_sql_execution(sql_text:, started_at:, success:, error: nil)
+      return unless sql_logging_enabled?
+
+      logger = safe_logger
+      return if logger.nil?
+
+      payload = build_sql_log_payload(sql_text: sql_text, started_at: started_at, success: success, error: error)
+      logger.info(payload)
+    rescue StandardError
+      nil
+    end
+
+    def build_sql_log_payload(sql_text:, started_at:, success:, error: nil)
+      normalized_sql = normalize_sql(sql_text)
+      masked_sql = mask_sensitive_values(normalized_sql)
+      truncated_sql, sql_length, sql_truncated = truncate_sql(masked_sql)
+
+      {
+        event: "queries.sql_execution",
+        query_class: self.class.name,
+        sql_source: file_source,
+        sql_file: file.to_s,
+        timestamp: Time.current.utc.iso8601,
+        duration_ms: ((current_monotonic_time - started_at) * 1000).round(2),
+        success: success,
+        error_class: error&.class&.name,
+        sql: truncated_sql,
+        sql_length: sql_length,
+        sql_truncated: sql_truncated,
+        sensitive_filtered: truncated_sql.include?("[FILTERED]")
+      }.compact
+    end
+
+    def normalize_sql(sql_text)
+      sql_text.to_s.gsub(/\s+/, " ").strip
+    end
+
+    def truncate_sql(sql_text)
+      max_size = 500
+      sql_length = sql_text.length
+      return [ sql_text, sql_length, false ] if sql_length <= max_size
+
+      [ "#{sql_text[0...max_size]}...", sql_length, true ]
+    end
+
+    def sensitive_filters
+      configured = Rails.application.config.filter_parameters
+      defaults = %w[password token secret api_key access_token refresh_token authorization]
+      Array(configured).map(&:to_s) + defaults
+    rescue StandardError
+      %w[password token secret api_key access_token refresh_token authorization]
+    end
+
+    def sensitive_key?(key, filters)
+      key_name = key.to_s.downcase
+      filters.any? do |filter|
+        if filter.is_a?(Regexp)
+          key_name.match?(filter)
+        else
+          key_name.include?(filter.to_s.downcase)
+        end
+      end
+    end
+
+    def mask_sensitive_values(sql_text)
+      filters = sensitive_filters
+
+      params.each_with_object(sql_text.dup) do |(key, value), output|
+        next unless sensitive_key?(key, filters)
+        next if value.nil?
+
+        escaped_value = Regexp.escape(value.to_s)
+        output.gsub!(/#{escaped_value}/i, "[FILTERED]")
+      end
+    end
+
+    def safe_sql_for_logging(executed_sql)
+      return executed_sql if executed_sql.present?
+
+      normalize_sql(sql)
+    rescue StandardError
+      nil
     end
 
     def normalize_input_params(value)
